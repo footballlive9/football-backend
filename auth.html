@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Football Live — Konekte / Enskripsyon</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #00C853;
+    --gold: #FFD600;
+    --red: #FF1744;
+    --dark: #050A0E;
+    --card: #0D1B2A;
+    --card2: #112031;
+    --border: rgba(0,200,83,0.15);
+    --text: #E8F5E9;
+    --muted: #78909C;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--dark); color: var(--text);
+    font-family: 'Barlow', sans-serif; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 20px;
+    background-image: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,122,51,0.2), transparent);
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif; font-size: 32px;
+    letter-spacing: 4px; color: var(--green); margin-bottom: 4px;
+    text-align: center;
+  }
+  .logo span { color: var(--gold); }
+  .logo-sub { font-size: 11px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 2px; text-align: center; margin-bottom: 32px; }
+
+  .auth-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 32px 28px; width: 100%; max-width: 420px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex; background: rgba(255,255,255,0.05);
+    border-radius: 10px; padding: 4px; margin-bottom: 28px;
+  }
+  .tab {
+    flex: 1; padding: 10px; text-align: center; border-radius: 8px;
+    font-size: 13px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; cursor: pointer; color: var(--muted);
+    transition: all 0.2s; border: none; background: transparent;
+  }
+  .tab.active { background: var(--green); color: #000; }
+
+  /* FORM */
+  .form { display: none; }
+  .form.active { display: block; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--muted); margin-bottom: 6px;
+  }
+
+  .input-wrap { position: relative; }
+  .input-wrap .icon {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    font-size: 16px; pointer-events: none;
+  }
+
+  .form-group input {
+    width: 100%; background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px 12px 40px; color: var(--text);
+    font-size: 14px; font-family: 'Barlow', sans-serif;
+    outline: none; transition: border-color 0.2s;
+  }
+  .form-group input:focus { border-color: var(--green); }
+  .form-group input.error { border-color: var(--red); }
+
+  .form-group input.no-icon { padding-left: 16px; }
+
+  /* Referral field */
+  .referral-hint {
+    font-size: 11px; color: var(--muted); margin-top: 4px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .referral-hint.valid { color: var(--green); }
+
+  /* Password toggle */
+  .pwd-toggle {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    font-size: 16px; padding: 0;
+  }
+
+  /* Submit btn */
+  .btn-submit {
+    width: 100%; background: var(--green); color: #000;
+    border: none; border-radius: 10px; padding: 14px;
+    font-size: 15px; font-weight: 900; letter-spacing: 1.5px;
+    text-transform: uppercase; cursor: pointer; margin-top: 8px;
+    transition: all 0.2s; display: flex; align-items: center;
+    justify-content: center; gap: 8px;
+  }
+  .btn-submit:hover { background: #00E060; transform: translateY(-1px); }
+  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  /* Divider */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 20px 0; color: var(--muted); font-size: 12px;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* Social */
+  .btn-google {
+    width: 100%; background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px; font-size: 14px; font-weight: 700;
+    color: var(--text); cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn-google:hover { border-color: rgba(255,255,255,0.3); }
+
+  /* Error / Success messages */
+  .msg {
+    border-radius: 10px; padding: 12px 16px; font-size: 13px;
+    margin-bottom: 16px; display: none; align-items: center; gap: 8px;
+  }
+  .msg.error { background: rgba(255,23,68,0.1); border: 1px solid rgba(255,23,68,0.3); color: var(--red); }
+  .msg.success { background: rgba(0,200,83,0.1); border: 1px solid rgba(0,200,83,0.3); color: var(--green); }
+  .msg.show { display: flex; }
+
+  /* Bonis banner */
+  .bonis-banner {
+    background: linear-gradient(135deg, rgba(255,214,0,0.1), rgba(0,200,83,0.05));
+    border: 1px solid rgba(255,214,0,0.25); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .bonis-icon { font-size: 28px; }
+  .bonis-text { font-size: 13px; line-height: 1.5; }
+  .bonis-text strong { color: var(--gold); }
+
+  /* Progress bar (password strength) */
+  .pwd-strength { margin-top: 6px; }
+  .pwd-bar-track {
+    height: 3px; background: rgba(255,255,255,0.08);
+    border-radius: 2px; overflow: hidden;
+  }
+  .pwd-bar { height: 100%; border-radius: 2px; transition: all 0.3s; width: 0; }
+  .pwd-label { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+  /* Terms */
+  .terms {
+    font-size: 12px; color: var(--muted); text-align: center;
+    margin-top: 16px; line-height: 1.6;
+  }
+  .terms a { color: var(--green); text-decoration: none; }
+
+  /* Forgot password */
+  .forgot {
+    text-align: right; margin-top: -10px; margin-bottom: 16px;
+  }
+  .forgot a {
+    font-size: 12px; color: var(--muted); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .forgot a:hover { color: var(--green); }
+
+  /* Welcome screen */
+  #welcome-screen {
+    display: none; text-align: center; padding: 20px 0;
+  }
+  .welcome-icon { font-size: 64px; margin-bottom: 16px; }
+  .welcome-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 36px;
+    letter-spacing: 3px; color: var(--green); margin-bottom: 8px;
+  }
+  .welcome-sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
+
+  .referral-code-box {
+    background: rgba(0,200,83,0.08); border: 1px solid rgba(0,200,83,0.25);
+    border-radius: 12px; padding: 16px 20px; margin-bottom: 20px;
+  }
+  .referral-code-box p { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .code-display {
+    font-family: 'Bebas Neue', sans-serif; font-size: 28px;
+    letter-spacing: 6px; color: var(--green);
+  }
+  .btn-copy {
+    background: rgba(0,200,83,0.15); border: 1px solid rgba(0,200,83,0.3);
+    border-radius: 8px; padding: 6px 16px; color: var(--green);
+    font-size: 12px; font-weight: 700; cursor: pointer; margin-top: 8px;
+    transition: all 0.2s;
+  }
+  .btn-copy:hover { background: rgba(0,200,83,0.25); }
+
+  .btn-enter-app {
+    width: 100%; background: var(--green); color: #000;
+    border: none; border-radius: 10px; padding: 14px;
+    font-size: 15px; font-weight: 900; letter-spacing: 1.5px;
+    text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+    text-decoration: none; display: block;
+  }
+  .btn-enter-app:hover { background: #00E060; }
+
+  /* Spinner */
+  .spinner {
+    width: 18px; height: 18px; border: 2px solid rgba(0,0,0,0.3);
+    border-top-color: #000; border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="logo">FOOTBALL <span>LIVE</span></div>
+<div class="logo-sub">Scores · Paryaj · Live</div>
+
+<div class="auth-box">
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('login')">🔑 Konekte</button>
+    <button class="tab" onclick="switchTab('register')">✨ Enskri</button>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="msg error" id="msg-error">⚠️ <span id="msg-error-text"></span></div>
+  <div class="msg success" id="msg-success">✅ <span id="msg-success-text"></span></div>
+
+  <!-- LOGIN FORM -->
+  <div class="form active" id="form-login">
+    <div class="form-group">
+      <label>Email</label>
+      <div class="input-wrap">
+        <span class="icon">📧</span>
+        <input type="email" id="login-email" placeholder="ou@email.com">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Modpas</label>
+      <div class="input-wrap">
+        <span class="icon">🔒</span>
+        <input type="password" id="login-pass" placeholder="••••••••">
+        <button class="pwd-toggle" onclick="togglePwd('login-pass', this)">👁</button>
+      </div>
+    </div>
+
+    <div class="forgot"><a href="#" onclick="showForgot()">Bliye modpas?</a></div>
+
+    <button class="btn-submit" onclick="doLogin()" id="btn-login">
+      Konekte
+    </button>
+
+    <div class="divider">oubyen</div>
+
+    <button class="btn-google" onclick="showMsg('error', 'Google login ap vini byento!')">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Kontinye ak Google
+    </button>
+  </div>
+
+  <!-- REGISTER FORM -->
+  <div class="form" id="form-register">
+
+    <div class="bonis-banner">
+      <div class="bonis-icon">🎁</div>
+      <div class="bonis-text">
+        Enskri jodi a — jwenn <strong>50 HTG bonis</strong> si yon zanmi envite ou!
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Non Konplè</label>
+      <div class="input-wrap">
+        <span class="icon">👤</span>
+        <input type="text" id="reg-name" placeholder="Jean Pierre">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Email</label>
+      <div class="input-wrap">
+        <span class="icon">📧</span>
+        <input type="email" id="reg-email" placeholder="ou@email.com">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Nimewo Telefòn</label>
+      <div class="input-wrap">
+        <span class="icon">📱</span>
+        <input type="tel" id="reg-phone" placeholder="+509 XXXX XXXX">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Modpas</label>
+      <div class="input-wrap">
+        <span class="icon">🔒</span>
+        <input type="password" id="reg-pass" placeholder="Minimòm 6 karaktè" oninput="checkPwdStrength(this.value)">
+        <button class="pwd-toggle" onclick="togglePwd('reg-pass', this)">👁</button>
+      </div>
+      <div class="pwd-strength">
+        <div class="pwd-bar-track"><div class="pwd-bar" id="pwd-bar"></div></div>
+        <div class="pwd-label" id="pwd-label"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Konfime Modpas</label>
+      <div class="input-wrap">
+        <span class="icon">🔒</span>
+        <input type="password" id="reg-pass2" placeholder="Repete modpas la">
+        <button class="pwd-toggle" onclick="togglePwd('reg-pass2', this)">👁</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Kòd Referral <span style="color:var(--muted);font-weight:400;">(Opsyonèl)</span></label>
+      <div class="input-wrap">
+        <span class="icon">🎟️</span>
+        <input type="text" id="reg-referral" placeholder="ex: FL-ABC123" class="no-icon" style="padding-left:40px;" oninput="checkReferral(this.value)">
+      </div>
+      <div class="referral-hint" id="referral-hint"></div>
+    </div>
+
+    <button class="btn-submit" onclick="doRegister()" id="btn-register">
+      Kreye Kont Mwen
+    </button>
+
+    <div class="terms">
+      Lè ou enskri, ou aksepte <a href="#">Kondisyon Itilizasyon</a> ak
+      <a href="#">Politik Konfidansyalite</a> nou an.
+    </div>
+  </div>
+
+  <!-- WELCOME SCREEN (apre enskripsyon) -->
+  <div id="welcome-screen">
+    <div class="welcome-icon">🎉</div>
+    <div class="welcome-title">Byenvini!</div>
+    <div class="welcome-sub" id="welcome-msg">
+      Kont ou kreye avèk siksè.<br>
+      Pataje kòd referral ou pou jwenn <strong style="color:var(--gold);">50 HTG</strong> pou chak zanmi!
+    </div>
+
+    <div class="referral-code-box">
+      <p>Kòd Referral Pèsonèl Ou</p>
+      <div class="code-display" id="user-referral-code">FL-??????</div>
+      <button class="btn-copy" onclick="copyCode()">📋 Kopye Kòd</button>
+    </div>
+
+    <a href="app.html" class="btn-enter-app">⚽ Antre nan App la</a>
+  </div>
+
+</div>
+
+<script>
+// ── SIMPLE LOCAL STORAGE USER DB ──────────────────────────
+// NOTE: Pou pwoduksyon reyèl, ou bezwen Firebase oubyen backend
+// Sa a se yon demo fonksyonèl
+
+function getUsers() {
+  return JSON.parse(localStorage.getItem('fl_users') || '[]');
+}
+
+function saveUsers(users) {
+  localStorage.setItem('fl_users', JSON.stringify(users));
+}
+
+function getCurrentUser() {
+  return JSON.parse(localStorage.getItem('fl_current_user') || 'null');
+}
+
+function setCurrentUser(user) {
+  localStorage.setItem('fl_current_user', JSON.stringify(user));
+}
+
+// Redirect si deja konekte
+if (getCurrentUser()) {
+  window.location.href = 'app.html';
+}
+
+// ── TAB SWITCH ─────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+  });
+  document.getElementById('form-login').classList.toggle('active', tab === 'login');
+  document.getElementById('form-register').classList.toggle('active', tab === 'register');
+  hideMessages();
+}
+
+// ── MESSAGES ───────────────────────────────────────────────
+function showMsg(type, text) {
+  hideMessages();
+  const el = document.getElementById('msg-' + type);
+  document.getElementById('msg-' + type + '-text').textContent = text;
+  el.classList.add('show');
+}
+
+function hideMessages() {
+  document.querySelectorAll('.msg').forEach(m => m.classList.remove('show'));
+}
+
+// ── PASSWORD TOGGLE ────────────────────────────────────────
+function togglePwd(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+  else { inp.type = 'password'; btn.textContent = '👁'; }
+}
+
+// ── PASSWORD STRENGTH ──────────────────────────────────────
+function checkPwdStrength(val) {
+  const bar = document.getElementById('pwd-bar');
+  const label = document.getElementById('pwd-label');
+  if (!val) { bar.style.width = '0'; label.textContent = ''; return; }
+
+  let score = 0;
+  if (val.length >= 6) score++;
+  if (val.length >= 10) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+
+  const levels = [
+    { w: '20%', c: '#FF1744', t: 'Fèb anpil' },
+    { w: '40%', c: '#FF6D00', t: 'Fèb' },
+    { w: '60%', c: '#FFD600', t: 'Mwayen' },
+    { w: '80%', c: '#00C853', t: 'Solid' },
+    { w: '100%', c: '#00E676', t: 'Ekselan!' },
+  ];
+  const lvl = levels[Math.min(score - 1, 4)] || levels[0];
+  bar.style.width = lvl.w;
+  bar.style.background = lvl.c;
+  label.textContent = lvl.t;
+  label.style.color = lvl.c;
+}
+
+// ── REFERRAL CHECK ─────────────────────────────────────────
+function checkReferral(val) {
+  const hint = document.getElementById('referral-hint');
+  if (!val) { hint.textContent = ''; return; }
+
+  const users = getUsers();
+  const found = users.find(u => u.referralCode === val.toUpperCase());
+  if (found) {
+    hint.textContent = '✅ Kòd valid! Ou ak ' + found.name + ' chak ap resevwa 50 HTG';
+    hint.className = 'referral-hint valid';
+  } else {
+    hint.textContent = '❌ Kòd sa a pa egziste';
+    hint.className = 'referral-hint';
+  }
+}
+
+// ── GENERATE REFERRAL CODE ────────────────────────────────
+function genReferralCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = 'FL-';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+// ── LOGIN ──────────────────────────────────────────────────
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const btn = document.getElementById('btn-login');
+
+  if (!email || !pass) { showMsg('error', 'Ranpli tout chan yo!'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div>';
+
+  setTimeout(() => {
+    const users = getUsers();
+    const user = users.find(u => u.email === email && u.password === pass);
+
+    if (!user) {
+      showMsg('error', 'Email oubyen modpas pa kòrèk!');
+      btn.disabled = false;
+      btn.innerHTML = 'Konekte';
+      return;
+    }
+
+    setCurrentUser(user);
+    showMsg('success', 'Koneksyon reyisi! N ap redirije ou...');
+    setTimeout(() => { window.location.href = 'app.html'; }, 1200);
+  }, 800);
+}
+
+// ── REGISTER ──────────────────────────────────────────────
+function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  const referral = document.getElementById('reg-referral').value.trim().toUpperCase();
+  const btn = document.getElementById('btn-register');
+
+  // Validasyon
+  if (!name || !email || !pass) { showMsg('error', 'Ranpli tout chan obligatwa yo!'); return; }
+  if (!email.includes('@')) { showMsg('error', 'Email pa valid!'); return; }
+  if (pass.length < 6) { showMsg('error', 'Modpas dwe gen omwen 6 karaktè!'); return; }
+  if (pass !== pass2) { showMsg('error', 'De modpas yo pa menm!'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div>';
+
+  setTimeout(() => {
+    const users = getUsers();
+
+    // Chèke si email deja itilize
+    if (users.find(u => u.email === email)) {
+      showMsg('error', 'Email sa a deja itilize!');
+      btn.disabled = false;
+      btn.innerHTML = 'Kreye Kont Mwen';
+      return;
+    }
+
+    // Chèke referral
+    let referralBonus = 0;
+    let referrerIdx = -1;
+    if (referral) {
+      referrerIdx = users.findIndex(u => u.referralCode === referral);
+      if (referrerIdx === -1) {
+        showMsg('error', 'Kòd referral pa valid!');
+        btn.disabled = false;
+        btn.innerHTML = 'Kreye Kont Mwen';
+        return;
+      }
+      referralBonus = 50;
+      users[referrerIdx].balance += 50; // Bonis pou moun ki te envite
+    }
+
+    // Kreye nouvo itilizatè
+    const newUser = {
+      id: Date.now(),
+      name,
+      email,
+      phone: phone || '',
+      password: pass,
+      referralCode: genReferralCode(),
+      referredBy: referral || null,
+      balance: referralBonus,
+      plan: 'free',
+      createdAt: new Date().toISOString(),
+      avatar: name.charAt(0).toUpperCase()
+    };
+
+    users.push(newUser);
+    saveUsers(users);
+    setCurrentUser(newUser);
+
+    // Montre ekran byenvini
+    document.getElementById('form-register').style.display = 'none';
+    document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
+    document.getElementById('welcome-screen').style.display = 'block';
+    document.getElementById('user-referral-code').textContent = newUser.referralCode;
+
+    let welcomeMsg = `Kont ou kreye avèk siksè.<br>`;
+    if (referralBonus > 0) {
+      welcomeMsg += `🎁 <strong style="color:var(--gold)">+50 HTG bonis</strong> ajoute nan kont ou!<br>`;
+    }
+    welcomeMsg += `Pataje kòd referral ou pou jwenn <strong style="color:var(--gold);">50 HTG</strong> pou chak zanmi!`;
+    document.getElementById('welcome-msg').innerHTML = welcomeMsg;
+
+  }, 1000);
+}
+
+// ── COPY CODE ─────────────────────────────────────────────
+function copyCode() {
+  const code = document.getElementById('user-referral-code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    showMsg('success', 'Kòd kopye: ' + code);
+  }).catch(() => {
+    showMsg('success', 'Kòd ou: ' + code + ' — Kopye l manyèlman!');
+  });
+}
+
+// ── FORGOT PASSWORD ────────────────────────────────────────
+function showForgot() {
+  showMsg('success', 'Voye email ou — fonksyon reyinisyalizasyon ap vini byento!');
+}
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const loginActive = document.getElementById('form-login').classList.contains('active');
+    if (loginActive) doLogin(); else doRegister();
+  }
+});
+</script>
+</body>
+</html>
