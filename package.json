@@ -1,6 +1,7 @@
 {
   "name": "football-backend",
   "version": "1.0.0",
+  "description": "Backend pou matches live football ak RapidAPI + Football-Data",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
